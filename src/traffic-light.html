@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>红绿灯</title>
+  <style>
+    #traffic > li{
+      display: block;
+    }
+    #traffic span{
+      display: inline-block;
+      width: 50px;
+      height: 50px;
+      background: gray;
+      margin: 5px;
+      border-radius: 50%;
+    }
+    #traffic.stop li:nth-child(1) span{
+      background-color: #a00;
+    }
+    #traffic.wait li:nth-child(2) span{
+      background-color: #aa0;
+    }
+    #traffic.pass li:nth-child(3) span{
+      background-color: #0a0;
+    }
+  </style>
+</head>
+<body>
+  <ul id="traffic" class="wait">
+    <li><span></span></li>
+    <li><span></span></li>
+    <li><span></span></li>
+  </ul>
+  <script>
+    // red - yellow -green - red -...
+    const traffic = document.getElementById('traffic')
+    // 版本一
+    /*;(function () {
+      traffic.className = 'wait'
+      let reset = arguments.callee
+      setTimeout(() => {
+        traffic.className = 'stop'
+        setTimeout(() => {
+          traffic.className = 'pass'
+          setTimeout(reset, 2000)
+        }, 2000)
+      }, 2000)
+    })()*/
+
+    // 版本二
+    /*let states = ['wait', 'stop', 'pass']
+    let currentState = 0
+    setInterval(() => {
+      let state = states[currentState++ % states.length]
+      traffic.className = state
+    }, 2000)*/
+
+    // 版本三 ≈ 版本二 不暴露辣么多变量
+    /*;(function (traffic, states) {
+      let currentState = 0
+      setInterval(() => {
+        let state = states[currentState++ % states.length]
+        traffic.className = state
+      }, 2000)
+    })(traffic, ['wait', 'stop', 'pass'])*/
+
+    // 版本四
+    /*function poll (...fns) {
+      let currentState = 0
+      return function (...args) {
+        let fn = fns[currentState++ % fns.length]
+        return fn.apply(this, args)
+      }
+    }
+    function setState (state) {
+      traffic.className = state
+    }
+    let trafficStatePoll = poll(setState.bind(null, 'wait'), setState.bind(null, 'stop'), setState.bind(null, 'pass'))
+    setInterval(trafficStatePoll, 2000)*/
+
+    // 版本五
+    function wait (time) {
+      return new Promise(resolve => setTimeout(resolve, time))
+    }
+    function setState (state) {
+      traffic.className = state
+    }
+    function reset () {
+      Promise.resolve()
+        .then(setState.bind(null, 'wait'))
+        .then(wait.bind(null, 1000))
+        .then(setState.bind(null, 'stop'))
+        .then(wait.bind(null, 2000))
+        .then(setState.bind(null, 'pass'))
+        .then(wait.bind(null, 3000))
+        .then(reset)
+    }
+    reset()
+  </script>
+</body>
+</html>
